@@ -319,8 +319,10 @@ void JavaProfiler::prof_handler(int signal, siginfo_t * info, void * context) {
 
 	// TODO: Do we need to do this every time??
 	int ret = globalJvm->AttachCurrentThread((void **) &env, NULL);
-	printf("AttachCurrentThread %d\n", ret);
-
+	if (ret != 0) {
+		printf("AttachCurrentThread %d\n", ret);
+	}
+	
 	trace.env_id = env;
 	trace.num_frames = 0;
 
@@ -389,6 +391,48 @@ void JavaProfiler::prof_handler(int signal, siginfo_t * info, void * context) {
 //	printf("\n");
 	instance.collector_.Add(depth, stack);
 }
+
+
+bool autoStarted = false;
+char profilePath[4096] = "";
+bool jvmStarted = false;
+
+void onJvmStop() {
+	if (autoStarted) {
+		JavaProfiler::instance_.Stop();
+	}
+}
+
+void onJvmStart() {
+	jvmStarted = true;
+
+	if (profilePath[0]) {
+		bool ok = JavaProfiler::instance_.Start(profilePath);
+		if (!ok) {
+			printf("Error starting profiler\n");
+		} else {
+			autoStarted = true;
+			printf("Sending profile to: %s\n", profilePath);
+		}
+	}
+}
+
+bool startProfiling(const char * s) {
+	if ((1 + strlen(s)) >= sizeof(profilePath)) {
+		printf("Path too long\n");
+		return false;
+	}
+	strcpy(profilePath, s);
+	
+	if (jvmStarted) {
+		bool ret = JavaProfiler::instance_.Start(profilePath);
+		return ret;
+	} else {
+		// We can't start profiling till the JVM starts
+		return true;
+	}
+}
+
 
 //// Signal handler that records the pc in the profile-data structure. We do no
 //// synchronization here.  profile-handler.cc guarantees that at most one
@@ -484,9 +528,8 @@ extern "C" {
 JNIEXPORT bool JNICALL Java_com_fathomdb_profiler_Profiler_start0(JNIEnv *env, jobject obj, jstring javaPath)
 {
 	const char *cPath = env->GetStringUTFChars(javaPath, 0);
-
-	bool ret = JavaProfiler::instance_.Start(cPath);
-
+	bool ret = startProfiling(cPath);
+	
 	env->ReleaseStringUTFChars(javaPath, cPath);
 
 	return ret;

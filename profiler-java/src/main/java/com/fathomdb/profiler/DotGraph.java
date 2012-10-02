@@ -15,6 +15,7 @@ public class DotGraph<K> {
 
 	float optNodeFraction = 0.005f;
 	float optEdgeFraction = 0.001f;
+
 	int optNodeCount = 80;
 	int optMaxDegree = 8;
 
@@ -69,6 +70,12 @@ public class DotGraph<K> {
 		// return 0;
 		// }
 		if (last < 0) {
+			System.err.println("No nodes to print");
+			System.err.println("\tlocalTotal=" + localTotal);
+			System.err.println("\tnodeLimit=" + nodeLimit);
+			System.err.println("\tedgeLimit=" + edgeLimit);
+			System.err.println("\tnodeCount=" + nodeCount);
+
 			return false;
 		}
 		//
@@ -397,7 +404,7 @@ public class DotGraph<K> {
 	}
 
 	private static <K> List<K> keysByCountDescending(final Map<K, Long> profile) {
-		List<K> keys = new ArrayList<K>();
+		List<K> keys = new ArrayList<K>(profile.keySet());
 
 		Collections.sort(keys, new Comparator<K>() {
 			@Override

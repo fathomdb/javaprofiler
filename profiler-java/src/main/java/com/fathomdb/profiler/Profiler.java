@@ -11,6 +11,8 @@ public class Profiler {
 
 	private native void stop0();
 
+	private native long getMagic0();
+
 	static final Profiler profiler = new Profiler();
 
 	static String[] getMethodInfo(long methodId) {
@@ -25,8 +27,7 @@ public class Profiler {
 		if (present == null) {
 			synchronized (profiler) {
 				try {
-					long methodId = 0;
-					profiler.getMethodInfo0(methodId);
+					profiler.getMagic0();
 					present = true;
 				} catch (UnsatisfiedLinkError e) {
 					present = false;

@@ -10,7 +10,9 @@
   
   
   <modules>
+<!-- Required maven-nar-plugin
     <module>profiler-agent</module>
+-->
     <module>profiler-java</module>
    <module>profiler-example</module>
   </modules>
